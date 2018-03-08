@@ -52,28 +52,30 @@ class DataHandler{
         
     }
     
-    function getClients(){
+    function getSection( $heading_searchFor, $section_searchFor ){
         
-        $clients = array();
+        $return = array();
         $heading = array();
-        $clientContent = false;
+        $haveSection = false;
         
         foreach( $this->vatsim_data_lines as $rownum=>$line ){
             
-            if( !$clientContent ){
+            if( $line == "\n" || $line == "\r" ){ continue; }
+            
+            if( !$haveSection ){
                 
-                if( preg_match( "/; !CLIENTS section -/", $line ) ){
+                if( preg_match( "/$heading_searchFor/", $line ) ){
                     
-                    $heading = explode( ":", explode( "; !CLIENTS section -         ", $line )[ 1 ] );
+                    $heading = explode( ":", explode( $heading_searchFor, $line )[ 1 ] );
                     array_pop( $heading );
                     
                 }
                 
-                $clientContent = preg_match( "/!CLIENTS:/", $line );
+                $haveSection = preg_match( "/$section_searchFor/", $line );
                 
             } else {
                 
-                if( $line == ";\r" and preg_match('/;/', $this->vatsim_data_lines[ $rownum ] ) ){ break; }
+                if( $line == ";\r" ){ break; }
                 $curLine = explode( ":", $line );
                 
                 $data = array();
@@ -83,52 +85,81 @@ class DataHandler{
                     
                 }
                 
-                array_push( $clients, new DataObject( $data ) );
+                array_push( $return, new DataObject( $data ) );
                 
             }
         }
         
-        return $clients;
+        return $return;
+        
+    }
+    
+    function getClients(){
+        
+        return $this->getSection( "; !CLIENTS section -         ", "!CLIENTS:" );
         
     }
     
     function getPrefiled(){
         
-        $prefiled = array();
-        $heading = array();
-        $clientContent = false;
+        return $this->getSection( "; !PREFILE section -         ", "!PREFILE:" );
         
-        foreach( $this->vatsim_data_lines as $rownum=>$line ){
+    }
+    
+    function getVoiceServers(){
+        
+        return $this->getSection( "; !VOICE SERVERS section -   ", "!VOICE SERVERS:" );
+        
+    }
+    
+    function getAirTraffic(){
+        
+        return array_filter( $this->getClients(), function( $dataObject ){
             
-            if( !$clientContent ){
-                
-                if( preg_match( "/; !PREFILE section -         /", $line ) ){
-                    
-                    $heading = explode( ":", explode( "; !PREFILE section -         ", $line )[ 1 ] );
-                    array_pop( $heading );
-                    
-                }
-                
-                $clientContent = preg_match( "/!PREFILE:/", $line );;
-                
-            } else {
-                
-                if( $line == ";\r" and preg_match('/;/', $this->vatsim_data_lines[ $rownum ] ) ){ break; }
-                $curLine = explode( ":", $line );
-                
-                $data = array();
-                foreach( $heading as $headingNum => $headingTitle ){
-                    
-                    $data[ $headingTitle ] = $curLine[ $headingNum ];
-                    
-                }
-                
-                array_push( $prefiled, new DataObject( $data ) );
-                
-            }
-        }
+            return $dataObject->clienttype == "ATC" && !preg_match( "/(VAT|ACC|PTD|ATD)[a-z]{2,4}[0-9]{1,2}|[a-z]{2,4}(_SUP|_OBS)|VATSIM[0-9]{1,2}/i", $dataObject->callsign )
+            && $dataObject->rating != 1;
+            
+        } );
         
-        return $prefiled;
+    }
+    
+    function getObservers(){
+     
+        return array_filter( $this->getClients(), function( $dataObject ){
+            
+            return $dataObject->clienttype == "ATC" && preg_match( "/(VAT|ACC|PTD|ATD)[a-z]{2,4}[0-9]{1,2}|[a-z]{2,4}(_SUP|_OBS)|VATSIM[0-9]{1,2}/i", $dataObject->callsign );
+            
+        } );
+     
+    }
+    
+    function getStaff(){
+     
+        return array_filter( $this->getClients(), function( $dataObject ){
+            
+            return $dataObject->clienttype == "ATC" && preg_match( "/(VAT|ACC|PTD|ATD)[a-z]{2,4}[0-9]{1,2}|[a-z]{2,4}_SUP|VATSIM[0-9]{1,2}/i", $dataObject->callsign );
+            
+        } );
+     
+    }
+    
+    function getSupervisors(){
+        
+        return array_filter( $this->getClients(), function( $dataObject ){
+            
+            return $dataObject->rating >= 11;
+            
+        } );
+        
+    }
+    
+    function getPilots(){
+        
+        return array_filter( $this->getClients(), function( $dataObject ){
+            
+            return $dataObject->clienttype == "PILOT";
+            
+        } );
         
     }
     
