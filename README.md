@@ -13,7 +13,7 @@ Easy to use, object-orientated data handler for the VATSIM status system.
 * getVoiceServers() - _Available voice servers._
 * getPrefiled() - _Prefiled flightplans._
 * getClients() - _Everyone connected to VATSIM._
-
+* searchFor( functionName, RegEX, variableName ) - _Use RegEX to search variables._
 ## How to use
 Bear in mind, this only lists callsigns. You might find it more beneficial to var_dump one of the clients, to see the different variables available to you.
 ```php
