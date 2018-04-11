@@ -26,7 +26,7 @@ class DataHandler{
                 $day = substr( $date, 6, 2 );
                 $time = substr( $date, 8, 2 ) . ":" . substr( $date, 10, 2 ) . ":" . substr( $date, 12, 2 );
                 
-                return strtotime( $day . "-" . $month . "-" . $year . " " . $time ) + 120 < time();
+                return strtotime( "$day-$month-$year-$time" ) + 120 < time();
                 
             }
             
@@ -94,6 +94,21 @@ class DataHandler{
         
     }
     
+    function searchFor( $functionName, $searchRegex, $searchField ){
+
+        if( !method_exists( $this, $functionName ) ){ 
+            throw new Exception( "Invalid Function Provided!" );
+            return array();
+        }
+        
+        return array_filter( $this->{$functionName}(), function( $dataObject ) use ( $searchRegex, $searchField ) {
+
+            return isset( $dataObject->{$searchField} ) ? preg_match( $searchRegex, $dataObject->{$searchField} ) : false;
+            
+        } );
+        
+    }
+    
     function getClients(){
         
         return $this->getSection( "; !CLIENTS section -         ", "!CLIENTS:" );
@@ -145,21 +160,13 @@ class DataHandler{
     
     function getSupervisors(){
         
-        return array_filter( $this->getClients(), function( $dataObject ){
-            
-            return $dataObject->rating >= 11;
-            
-        } );
+        return $this->searchFor( "getClients", "/(11|12)/", "rating" );
         
     }
     
     function getPilots(){
         
-        return array_filter( $this->getClients(), function( $dataObject ){
-            
-            return $dataObject->clienttype == "PILOT";
-            
-        } );
+        return $this->searchFor( "getClients", "/PILOT/", "clienttype" );
         
     }
     
