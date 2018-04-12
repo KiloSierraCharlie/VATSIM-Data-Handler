@@ -4,12 +4,13 @@ class DataHandler{
     
     private $dataServers = array();
     private $vatsim_data_lines = array();
+    public $lastUpdate = 0;
     
     function __construct(){
         
         if( $this->shouldUpdateData() ){ $this->updateData(); }
         $this->vatsim_data_lines = explode( "\n", file_get_contents( "vatsim-data.txt" ) );
-        
+
     }
     
     function shouldUpdateData(){
@@ -26,7 +27,9 @@ class DataHandler{
                 $day = substr( $date, 6, 2 );
                 $time = substr( $date, 8, 2 ) . ":" . substr( $date, 10, 2 ) . ":" . substr( $date, 12, 2 );
                 
-                return strtotime( "$day-$month-$year-$time" ) + 120 < time();
+                $this->lastUpdate = strtotime( "$day-$month-$year $time" );
+                
+                return $this->lastUpdate + 120 < time();
                 
             }
             
