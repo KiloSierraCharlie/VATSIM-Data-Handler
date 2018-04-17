@@ -9,14 +9,14 @@ class DataHandler{
     function __construct(){
         
         if( $this->shouldUpdateData() ){ $this->updateData(); }
-        $this->vatsim_data_lines = explode( "\n", file_get_contents( "vatsim-data.txt" ) );
+        $this->vatsim_data_lines = explode( "\n", file_get_contents( dirname(__FILE__) . "/vatsim-data.txt" ) );
 
     }
     
     function shouldUpdateData(){
         
         if( !file_exists( "vatsim-data.txt" ) ){ return true; }
-        $vatsim_data = file_get_contents( "vatsim-data.txt" );
+        $vatsim_data = file_get_contents( dirname(__FILE__) . "/vatsim-data.txt" );
         foreach( explode( "\n", $vatsim_data ) as $line ){
             
             if( preg_match( "/UPDATE = /", $line ) ){
@@ -51,7 +51,7 @@ class DataHandler{
             
         }
         $vatsim_data = file_get_contents( $this->dataServers[ array_rand( $this->dataServers ) ] );
-        file_put_contents( "vatsim-data.txt", $vatsim_data );
+        file_put_contents( dirname(__FILE__) . "/vatsim-data.txt", $vatsim_data );
         
     }
     
