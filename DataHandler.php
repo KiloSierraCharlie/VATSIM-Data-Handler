@@ -1,5 +1,7 @@
 <?php
+namespace VATSIM;
 require( "DataObject.php" );
+
 class DataHandler{
     
     private $dataServers = array();

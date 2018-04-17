@@ -1,5 +1,5 @@
 <?php
-
+namespace VATSIM;
 class DataObject{
     
     function __construct( $data ){
