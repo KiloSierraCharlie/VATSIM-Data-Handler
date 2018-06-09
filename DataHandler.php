@@ -7,18 +7,20 @@ class DataHandler{
     private $dataServers = array();
     private $vatsim_data_lines = array();
     public $lastUpdate = 0;
+    private $storageLocation = null;
     
-    function __construct(){
+    function __construct( $storageLocation = null ){
         
+        $this->storageLocation = $storageLocation == null ? dirname(__FILE__) : $storageLocation;
         if( $this->shouldUpdateData() ){ $this->updateData(); }
-        $this->vatsim_data_lines = explode( "\n", file_get_contents( dirname(__FILE__) . "/vatsim-data.txt" ) );
+        $this->vatsim_data_lines = explode( "\n", file_get_contents( $this->storageLocation . "/vatsim-data.txt" ) );
 
     }
     
     function shouldUpdateData(){
         
         if( !file_exists( "vatsim-data.txt" ) ){ return true; }
-        $vatsim_data = file_get_contents( dirname(__FILE__) . "/vatsim-data.txt" );
+        $vatsim_data = file_get_contents( $this->storageLocation . "/vatsim-data.txt" );
         foreach( explode( "\n", $vatsim_data ) as $line ){
             
             if( preg_match( "/UPDATE = /", $line ) ){
